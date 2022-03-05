@@ -50,4 +50,33 @@ describe("Campaigns", () => {
 
     assert.ok(isContributor);
   });
+
+  it("requires a minimum contribution", async () => {
+    try {
+      await campaign.methods.contribute().send({
+        value: "5",
+        from: accounts[1]
+      });
+      throw false;
+    } catch (err) {
+      assert.ok(err);
+    }
+  });
+
+  it("allows a manager to make a payment request", async () => {
+    const description = "Buy batteries";
+    const value = "100";
+    const recipient = accounts[1];
+
+    await campaign.methods.createRequest(description, value, recipient).send({
+      from: accounts[0],
+      gas: "1000000"
+    });
+
+    const request = await campaign.methods.requests(0).call();
+
+    assert.equal(description, request.description);
+    assert.equal(value, request.value);
+    assert.equal(recipient, request.recipient);
+  });
 });
